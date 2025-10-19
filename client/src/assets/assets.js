@@ -14,27 +14,55 @@ export const assets = {
     profile
 }
 
-export const dummyTrailers = [
-    {
-        image: "https://img.youtube.com/vi/WpW36ldAqnM/maxresdefault.jpg",
-        videoUrl:'https://youtu.be/WpW36ldAqnM?si=d6C2I-CT-McOV--a'
+// export const dummyTrailers = [
+//     {
+//         image: "https://img.youtube.com/vi/WpW36ldAqnM/maxresdefault.jpg",
+//         videoUrl:'https://youtu.be/WpW36ldAqnM?si=d6C2I-CT-McOV--a'
           
-    },
-    {
-        image: "https://img.youtube.com/vi/-sAOWhvheK8/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=-sAOWhvheK8'
+//     },
+//     {
+//         image: "https://img.youtube.com/vi/-sAOWhvheK8/maxresdefault.jpg",
+//         videoUrl: 'https://www.youtube.com/watch?v=-sAOWhvheK8'
         
-    },
-    {
-        image: "https://img.youtube.com/vi/1pHDWnXmK7Y/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=1pHDWnXmK7Y'
-    },
-    {
-        image: "https://img.youtube.com/vi/umiKiW4En9g/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=umiKiW4En9g'
-    }
+//     },
+//     {
+//         image: "https://img.youtube.com/vi/1pHDWnXmK7Y/maxresdefault.jpg",
+//         videoUrl: 'https://www.youtube.com/watch?v=1pHDWnXmK7Y'
+//     },
+//     {
+//         image: "https://img.youtube.com/vi/umiKiW4En9g/maxresdefault.jpg",
+//         videoUrl: 'https://www.youtube.com/watch?v=umiKiW4En9g'
+//     }
 
-]
+// ]
+
+
+export const dummyTrailers = [
+  {
+    image: "https://img.youtube.com/vi/WpW36ldAqnM/maxresdefault.jpg",
+    videoId: "WpW36ldAqnM",
+  },
+  {
+    image: "https://img.youtube.com/vi/-sAOWhvheK8/maxresdefault.jpg",
+    videoId: "-sAOWhvheK8",
+  },
+  {
+    image: "https://img.youtube.com/vi/1pHDWnXmK7Y/maxresdefault.jpg",
+    videoId: "1pHDWnXmK7Y",
+  },
+  {
+    image: "https://img.youtube.com/vi/umiKiW4En9g/maxresdefault.jpg",
+    videoId: "umiKiW4En9g",
+  },
+];
+
+
+
+
+
+
+
+
 
 const dummyCastsData = [
     { "name": "Milla Jovovich", "profile_path": "https://image.tmdb.org/t/p/original/usWnHCzbADijULREZYSJ0qfM00y.jpg", },

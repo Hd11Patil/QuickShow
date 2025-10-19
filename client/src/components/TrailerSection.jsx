@@ -13,15 +13,26 @@ const TrailerSection = () => {
         Recent Trailers
       </p>
 
-      <div className="relative mt-6">
+      <div className="relative mt-6 aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden">
         <BlurCircle top="-100px" right="-100px" />
+
+        <iframe
+          src={`https://www.youtube.com/embed/${currentTrailer.videoId}`}
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="w-full h-full border-none"
+        ></iframe>
+
         {/* <ReactPlayer
           url={currentTrailer.videoUrl}
-          controls={false}
+          controls={true}
           className="mx-auto max-w-full"
           width="960px"
-          height="540px" 
-        />  */}
+          height="540px"
+          onError={(e) => console.error("ReactPlayer Error:", e)}
+        />
+         */}
       </div>
 
       <div className="group grid grid-cols-4 gap-4 md:gap-8 mt-8 max-w-3xl mx-auto">
