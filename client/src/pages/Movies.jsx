@@ -18,7 +18,7 @@ const Movies = () => {
     </div>
   ) : (
     <div className="felx flex-col items-center justify-center h-screen">
-      <h1 className="text-3xl font-bold text-center">No movies available</h1>
+      <h1 className="text-3xl font-bold text-center">No Movies Available</h1>
     </div>
   );
 };
