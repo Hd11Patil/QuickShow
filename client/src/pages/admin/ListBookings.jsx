@@ -3,6 +3,7 @@ import { dummyBookingData } from "../../assets/assets";
 import Loading from "../../components/Loading";
 import Title from "../../components/Title";
 import { dateFormat } from "../../lib/dateFormat";
+import BlurCircle from "../../components/BlurCircle";
 
 const ListBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY;
@@ -33,6 +34,7 @@ const ListBookings = () => {
               <th className="p-2 font-medium ">Amount</th>
             </tr>
           </thead>
+          <BlurCircle bottom="10px" right="100px" />
           <tbody className="text-sm font-light">
             {bookings.map((item, index) => (
               <tr
