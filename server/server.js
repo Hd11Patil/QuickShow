@@ -28,3 +28,5 @@ app.use("/api/booking", bookingRouter);
 app.listen(port, () =>
   console.log(`Server listening at http://localhost:${port}`)
 );
+
+// 6:30minit   new controler file creted
