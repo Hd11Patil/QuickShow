@@ -64,4 +64,15 @@ export const createBooking = async (req, res) => {
   }
 };
 
-// 625
+export const getOccupiedSeats = async (req, res) => {
+  try {
+    const { showId } = req.params;
+    const showData = await Show.findById(showId);
+
+    const occupiedSeats = Object.keys(showData.occupiedSeats);
+    res.json({ success: true, occupiedSeats });
+  } catch (error) {
+    console.error(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
