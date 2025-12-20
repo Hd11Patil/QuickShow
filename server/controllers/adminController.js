@@ -1,6 +1,6 @@
-import Show from "../models/Show";
-import Booking from "../models/Booking";
-import { User } from "../models/User.js";
+import Show from "../models/Show.js";
+import Booking from "../models/Booking.js";
+import User from "../models/User.js";
 
 //API to check if user is admin
 
