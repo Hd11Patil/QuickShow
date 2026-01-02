@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.46.2",
     "@tailwindcss/vite": "^4.1.12",
+    "axios": "^1.13.2",
     "lucide-react": "^0.542.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
