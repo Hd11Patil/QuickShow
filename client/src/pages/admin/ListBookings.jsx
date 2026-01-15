@@ -4,21 +4,40 @@ import Loading from "../../components/Loading";
 import Title from "../../components/Title";
 import { dateFormat } from "../../lib/dateFormat";
 import BlurCircle from "../../components/BlurCircle";
+import { useAppContext } from "../../context/AppContext";
 
 const ListBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY;
+
+  const { axios, getToken, user } = useAppContext();
 
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getAllBookings = async () => {
-    setBookings(dummyBookingData);
+    try {
+      const { data } = await axios.get("/api/admin/all-bookings", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+
+      setBookings(data.bookings || []);
+    } catch (error) {
+      console.error(error);
+    }
+
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    getAllBookings();
-  }, []);
+  useEffect(
+    (user) => {
+      if (user) {
+        getAllBookings();
+      }
+    },
+    [user]
+  );
 
   return !isLoading ? (
     <>
@@ -36,7 +55,7 @@ const ListBookings = () => {
           </thead>
           <BlurCircle bottom="10px" right="100px" />
           <tbody className="text-sm font-light">
-            {bookings.map((item, index) => (
+            {bookings?.map((item, index) => (
               <tr
                 key={index}
                 className="border-b border-primary/20 bg-primary/5 even:bg-primary/10"

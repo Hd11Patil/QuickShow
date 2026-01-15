@@ -11,11 +11,15 @@ import Loading from "../../components/Loading";
 import Title from "../../components/Title";
 import BlurCircle from "../../components/BlurCircle";
 import { dateFormat } from "../../lib/dateFormat";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
+  const { axios, getToken, user, image_base_url } = useAppContext();
+
   const currency = import.meta.env.VITE_CURRENCY;
 
-  const [DashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState({
     totalBookings: 0,
     totalRevenue: 0,
     activeShows: [],
@@ -26,37 +30,54 @@ const Dashboard = () => {
   const dashboardCards = [
     {
       title: "Total Bookings",
-      value: DashboardData.totalBookings || "0",
+      value: dashboardData.totalBookings || "0",
       icon: ChartLineIcon,
     },
 
     {
       title: "Total Revenue",
-      value: currency + DashboardData.totalRevenue || "0",
+      value: currency + dashboardData.totalRevenue || "0",
       icon: CircleDollarSignIcon,
     },
 
     {
       title: "Active Shows",
-      value: DashboardData.activeShows.length || "0",
+      value: dashboardData.activeShows.length || "0",
       icon: PlayCircleIcon,
     },
 
     {
       title: "Total Users",
-      value: DashboardData.totalUser || "0",
+      value: dashboardData.totalUser || "0",
       icon: UsersIcon,
     },
   ];
 
   const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData);
-    setLoading(false);
+    try {
+      const { data } = await axios.get("/api/admin/dashboard", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+
+      if (data.success) {
+        setDashboardData(data.data);
+        // dashboardData
+        setLoading(false);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Error fetching dashboard data:", error);
+    }
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   return !loading ? (
     <>
@@ -86,13 +107,13 @@ const Dashboard = () => {
 
       <div className="relative flex flex-wrap gap-6 mt-4 max-w-5xl">
         <BlurCircle top="100px" left="-10%" />
-        {DashboardData.activeShows.map((show) => (
+        {dashboardData.activeShows.map((show) => (
           <div
             key={show._id}
             className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300"
           >
             <img
-              src={show.movie.poster_path}
+              src={image_base_url + show.movie.poster_path}
               alt=""
               className="h-60 w-full object-cover"
             />
