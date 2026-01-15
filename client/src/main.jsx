@@ -20,5 +20,3 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </ClerkProvider>
 );
-
-// 746  add dashboard data
