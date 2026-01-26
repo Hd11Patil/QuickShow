@@ -1,12 +1,20 @@
-import React from "react";
-import BlurCircle from "./BlurCircle";
+import React, { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Loading = () => {
+  const { nextUrl } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (nextUrl) {
+      setTimeout(() => {
+        navigate("/" + nextUrl);
+      }, 8000);
+    }
+  }, []);
+
   return (
     <div className="flex justify-center items-center h-[80vh]">
-      <BlurCircle top="100px" left="-100px" />
-      <BlurCircle bottom="100px" right="0px" />
-
       <div className="animate-spin rounded-full h-14 w-14 border-2 border-t-primary"></div>
     </div>
   );
