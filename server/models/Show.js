@@ -7,7 +7,7 @@ const showSchema = new mongoose.Schema(
     showPrice: { type: Number, required: true },
     occupiedSeats: { type: Object, default: {} },
   },
-  { minimize: false }
+  { minimize: false },
 );
 
 const Show = mongoose.model("Show", showSchema);
