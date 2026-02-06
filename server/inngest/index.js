@@ -75,22 +75,22 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
         return;
       }
 
-      const booking = await Booking.findById(bookingId);
+      const bookingData = await Booking.findById(bookingId);
 
       // FIX 2: Check if booking exists before accessing properties
       // If booking is null, it might have been deleted manually already.
-      if (!booking) {
+      if (!bookingData) {
         console.log("Booking not found or already deleted.");
         return;
       }
 
       // If payment is not made, release seats and delete booking
-      if (!booking.isPaid) {
-        const show = await Show.findById(booking.show);
+      if (!bookingData.isPaid) {
+        const show = await Show.findById(bookingData.show);
 
         // Safety check in case the show was deleted too
         if (show) {
-          booking.bookedSeats.forEach((seat) => {
+          bookingData.bookedSeats.forEach((seat) => {
             delete show.occupiedSeats[seat];
           });
           show.markModified("occupiedSeats");
@@ -106,86 +106,32 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
 
 // Inngest function to send email when user booked a show
 
-// const sendBookingConfirmationEmail = inngest.createFunction(
-//   { id: "send-booking-confirmation-email" },
-//   { event: "app/show.booked" },
-//   async ({ event, step }) => {
-//     const { bookingId } = event.data;
-
-//     const booking = await Booking.findById(bookingId)
-//       .populate({
-//         path: "show",
-//         populate: { path: "movie", model: "Movie" },
-//       })
-//       .populate("user");
-
-//     await sendEmail({
-//       to: booking.user.email,
-//       subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
-//       body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
-//   <h2>Hi ${booking.user.name},</h2>
-//   <p>Your booking for <strong style="color: #F84565;">${booking.show.movie.title}</strong> is confirmed.</p>
-//   <p>
-//     <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
-//     <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
-//   </p>
-//   <p>Enjoy the show! 🍿</p>
-//   <p>Thanks for booking with us!<br/>– QuickShow Team</p>
-// </div>`,
-//     });
-//   },
-// );
-
-// Inngest function to send email when user booked a show
 const sendBookingConfirmationEmail = inngest.createFunction(
   { id: "send-booking-confirmation-email" },
   { event: "app/show.booked" },
   async ({ event, step }) => {
     const { bookingId } = event.data;
 
-    // STEP 1: Fetch the booking safely
-    const booking = await step.run("fetch-booking-details", async () => {
-      const result = await Booking.findById(bookingId)
-        .populate({
-          path: "show",
-          populate: { path: "movie", model: "Movie" },
-        })
-        .populate("user");
-      return result;
-    });
+    const bookingData = await Booking.findById(bookingId)
+      .populate({
+        path: "show",
+        populate: { path: "movie", model: "Movie" },
+      })
+      .populate("user");
 
-    // --- FIX STARTS HERE ---
-
-    // Safety Check 1: Did we find the booking?
-    if (!booking) {
-      console.error(`Booking not found for ID: ${bookingId}`);
-      return; // Stop execution, don't throw error
-    }
-
-    // Safety Check 2: Does the booking have a user? (This fixes your crash)
-    if (!booking.user) {
-      console.error(`Booking ${bookingId} found, but associated User is null.`);
-      return; // Stop execution
-    }
-
-    // --- FIX ENDS HERE ---
-
-    // STEP 2: Send the email
-    await step.run("send-email", async () => {
-      await sendEmail({
-        to: booking.user.email, // Safe now because we checked booking.user above
-        subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
-        body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
-          <h2>Hi ${booking.user.name},</h2>
-          <p>Your booking for <strong style="color: #F84565;">${booking.show.movie.title}</strong> is confirmed.</p>
-          <p>
-            <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
-            <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
-          </p>
-          <p>Enjoy the show! 🍿</p>
-          <p>Thanks for booking with us!<br/>– QuickShow Team</p>
-        </div>`,
-      });
+    await sendEmail({
+      to: bookingData.user.email,
+      subject: `Payment Confirmation: "${bookingData.show.movie.title}" booked!`,
+      body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
+  <h2>Hi ${bookingData.user.name},</h2>
+  <p>Your booking for <strong style="color: #F84565;">${bookingData.show.movie.title}</strong> is confirmed.</p>
+  <p>
+    <strong>Date:</strong> ${new Date(bookingData.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
+    <strong>Time:</strong> ${new Date(bookingData.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
+  </p>
+  <p>Enjoy the show! 🍿</p>
+  <p>Thanks for booking with us!<br/>– QuickShow Team</p>
+</div>`,
     });
   },
 );
