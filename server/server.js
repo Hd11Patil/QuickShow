@@ -10,6 +10,8 @@ import bookingRouter from "./routes/bookingRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
+import { setServers } from "node:dns/promises";
+setServers(["8.8.8.8", "1.1.1.1"]);
 
 const app = express();
 const port = 3000;

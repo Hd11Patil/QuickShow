@@ -17,7 +17,7 @@ const syncUserCration = inngest.createFunction(
 
     const userData = {
       _id: id,
-      email: email_addresses[0].email_addresses,
+      email: email_addresses[0].email_address,
       name: first_name + " " + last_name,
       Image: image_url,
     };
@@ -97,7 +97,7 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
           await show.save();
         }
 
-        await Booking.findByIdAndDelete(booking._id);
+        await Booking.findByIdAndDelete(bookingData._id);
         console.log("Booking deleted due to non-payment.");
       }
     });
