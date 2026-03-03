@@ -145,55 +145,14 @@
 // ];
 
 import { Inngest } from "inngest";
-import User from "../models/User.js";
+import { clerkClient } from "@clerk/express";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 import sendEmail from "../configs/nodeMailer.js";
 
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
 
-// ─── Sync User Creation ───────────────────────────────────────────────────────
-const syncUserCration = inngest.createFunction(
-  { id: "sync-user-from-clerk" },
-  { event: "clerk/user.created" },
-  async ({ event }) => {
-    const { id, first_name, last_name, email_addresses, image_url } =
-      event.data;
-    await User.create({
-      _id: id,
-      email: email_addresses[0].email_address,
-      name: first_name + " " + last_name,
-      Image: image_url,
-    });
-  },
-);
-
-// ─── Sync User Deletion ───────────────────────────────────────────────────────
-const syncUserDeletion = inngest.createFunction(
-  { id: "delete-user-with-clerk" },
-  { event: "clerk/user.deleted" },
-  async ({ event }) => {
-    const { id } = event.data;
-    await User.findByIdAndDelete(id);
-  },
-);
-
-// ─── Sync User Update ─────────────────────────────────────────────────────────
-const syncUserUpdation = inngest.createFunction(
-  { id: "update-user-from-clerk" },
-  { event: "clerk/user.updated" },
-  async ({ event }) => {
-    const { id, first_name, last_name, email_addresses, image_url } =
-      event.data;
-    await User.findByIdAndUpdate(id, {
-      email: email_addresses[0].email_address, // ✅ FIXED typo: was .email_addresses
-      name: first_name + " " + last_name,
-      Image: image_url,
-    });
-  },
-);
-
-// ─── Release Seats if Unpaid ──────────────────────────────────────────────────
+// ─── Release Seats if Unpaid after 10 minutes ─────────────────────────────────
 export const releaseSeatsAndDeleteBooking = inngest.createFunction(
   { id: "release-seats-delete-booking" },
   { event: "app/checkpayment" },
@@ -201,13 +160,15 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
     await step.sleep("Wait-for-10-minutes", "10m");
 
     await step.run("check-payment-status", async () => {
-      const bookingId = event.data.bookingId;
+      const { bookingId } = event.data;
+
       if (!bookingId) {
         console.log("No booking ID found in event data.");
         return;
       }
 
       const bookingData = await Booking.findById(bookingId);
+
       if (!bookingData) {
         console.log("Booking not found or already deleted.");
         return;
@@ -215,6 +176,7 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
 
       if (!bookingData.isPaid) {
         const show = await Show.findById(bookingData.show);
+
         if (show) {
           bookingData.bookedSeats.forEach((seat) => {
             delete show.occupiedSeats[seat];
@@ -222,8 +184,9 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
           show.markModified("occupiedSeats");
           await show.save();
         }
+
         await Booking.findByIdAndDelete(bookingData._id);
-        console.log("Booking deleted due to non-payment.");
+        console.log("Booking deleted due to non-payment:", bookingId);
       }
     });
   },
@@ -236,7 +199,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
   async ({ event, step }) => {
     const { bookingId } = event.data;
 
-    // Step 1: Fetch booking + show + movie (no user populate — won't work with String IDs)
+    // Step 1: Fetch booking + show + movie
     const bookingData = await step.run("fetch-booking-data", async () => {
       return await Booking.findById(bookingId).populate({
         path: "show",
@@ -248,29 +211,22 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       throw new Error(`Email failed: Booking not found for ID ${bookingId}`);
     }
 
-    // Step 2: Manually fetch user by Clerk string ID ✅ THIS IS THE CORE FIX
-    const user = await step.run("fetch-user-data", async () => {
-      return await User.findById(bookingData.user);
+    // Step 2: Fetch user directly from Clerk
+    const clerkUser = await step.run("fetch-user-from-clerk", async () => {
+      return await clerkClient.users.getUser(bookingData.user);
     });
 
-    if (!user) {
-      throw new Error(`Email failed: No user found for ID "${bookingData.user}". 
-        Check if clerk/user.created event fired and saved the user correctly.`);
-    }
+    const userEmail = clerkUser.emailAddresses[0].emailAddress;
+    const userName = `${clerkUser.firstName} ${clerkUser.lastName}`;
 
-    if (!user.email) {
-      throw new Error(`Email failed: User ${user._id} exists but has no email. 
-        Likely caused by the email_addresses typo in syncUserUpdation.`);
-    }
-
-    // Step 3: Send the email
+    // Step 3: Send confirmation email
     await step.run("send-email", async () => {
       await sendEmail({
-        to: user.email,
+        to: userEmail,
         subject: `Payment Confirmed: "${bookingData.show.movie.title}" booked!`,
         body: `
           <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-            <h2>Hi ${user.name},</h2>
+            <h2>Hi ${userName},</h2>
             <p>Your booking for <strong style="color: #F84565;">${bookingData.show.movie.title}</strong> is confirmed.</p>
             <p>
               <strong>Date:</strong> ${new Date(bookingData.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
@@ -286,9 +242,6 @@ const sendBookingConfirmationEmail = inngest.createFunction(
 );
 
 export const functions = [
-  syncUserCration,
-  syncUserDeletion,
-  syncUserUpdation,
   releaseSeatsAndDeleteBooking,
   sendBookingConfirmationEmail,
 ];
