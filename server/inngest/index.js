@@ -106,86 +106,86 @@ export const releaseSeatsAndDeleteBooking = inngest.createFunction(
 
 // Inngest function to send email when user booked a show
 
-// const sendBookingConfirmationEmail = inngest.createFunction(
-//   { id: "send-booking-confirmation-email" },
-//   { event: "app/show.booked" },
-//   async ({ event, step }) => {
-//     const { bookingId } = event.data;
-
-//     const bookingData = await Booking.findById(bookingId)
-//       .populate({
-//         path: "show",
-//         populate: { path: "movie", model: "Movie" },
-//       })
-//       .populate("user");
-
-//     await sendEmail({
-//       to: bookingData.user.email,
-//       subject: `Payment Confirmation: "${bookingData.show.movie.title}" booked!`,
-//       body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
-//   <h2>Hi ${bookingData.user.name},</h2>
-//   <p>Your booking for <strong style="color: #F84565;">${bookingData.show.movie.title}</strong> is confirmed.</p>
-//   <p>
-//     <strong>Date:</strong> ${new Date(bookingData.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
-//     <strong>Time:</strong> ${new Date(bookingData.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
-//   </p>
-//   <p>Enjoy the show! 🍿</p>
-//   <p>Thanks for booking with us!<br/>– QuickShow Team</p>
-// </div>`,
-//     });
-//   },
-// );
-
 const sendBookingConfirmationEmail = inngest.createFunction(
   { id: "send-booking-confirmation-email" },
   { event: "app/show.booked" },
   async ({ event, step }) => {
     const { bookingId } = event.data;
 
-    // 1. Fetch data safely inside a step
-    const bookingData = await step.run("fetch-booking-data", async () => {
-      return await Booking.findById(bookingId)
-        .populate({
-          path: "show",
-          populate: { path: "movie", model: "Movie" },
-        })
-        .populate("user");
-    });
+    const bookingData = await Booking.findById(bookingId)
+      .populate({
+        path: "show",
+        populate: { path: "movie", model: "Movie" },
+      })
+      .populate("user");
 
-    // 2. Guard clauses to fail gracefully and log exactly what went wrong
-    if (!bookingData) {
-      throw new Error(`Email failed: Booking not found for ID ${bookingId}`);
-    }
-    if (!bookingData.user) {
-      throw new Error(
-        `Email failed: User not found (Populate returned null). Check your Booking schema to ensure the user ref matches Clerk String IDs.`,
-      );
-    }
-    if (!bookingData.user.email) {
-      throw new Error(
-        `Email failed: The user document exists, but the email field is missing or empty.`,
-      );
-    }
-
-    // 3. Send email safely inside its own step
-    await step.run("send-email", async () => {
-      await sendEmail({
-        to: bookingData.user.email,
-        subject: `Payment Confirmation: "${bookingData.show.movie.title}" booked!`,
-        body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
-          <h2>Hi ${bookingData.user.name},</h2>
-          <p>Your booking for <strong style="color: #F84565;">${bookingData.show.movie.title}</strong> is confirmed.</p>
-          <p>
-            <strong>Date:</strong> ${new Date(bookingData.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
-            <strong>Time:</strong> ${new Date(bookingData.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
-          </p>
-          <p>Enjoy the show! 🍿</p>
-          <p>Thanks for booking with us!<br/>– QuickShow Team</p>
-        </div>`,
-      });
+    await sendEmail({
+      to: bookingData.user.email,
+      subject: `Payment Confirmation: "${bookingData.show.movie.title}" booked!`,
+      body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
+  <h2>Hi ${bookingData.user.name},</h2>
+  <p>Your booking for <strong style="color: #F84565;">${bookingData.show.movie.title}</strong> is confirmed.</p>
+  <p>
+    <strong>Date:</strong> ${new Date(bookingData.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
+    <strong>Time:</strong> ${new Date(bookingData.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
+  </p>
+  <p>Enjoy the show! 🍿</p>
+  <p>Thanks for booking with us!<br/>– QuickShow Team</p>
+</div>`,
     });
   },
 );
+
+// const sendBookingConfirmationEmail = inngest.createFunction(
+//   { id: "send-booking-confirmation-email" },
+//   { event: "app/show.booked" },
+//   async ({ event, step }) => {
+//     const { bookingId } = event.data;
+
+//     // 1. Fetch data safely inside a step
+//     const bookingData = await step.run("fetch-booking-data", async () => {
+//       return await Booking.findById(bookingId)
+//         .populate({
+//           path: "show",
+//           populate: { path: "movie", model: "Movie" },
+//         })
+//         .populate("user");
+//     });
+
+//     // 2. Guard clauses to fail gracefully and log exactly what went wrong
+//     if (!bookingData) {
+//       throw new Error(`Email failed: Booking not found for ID ${bookingId}`);
+//     }
+//     if (!bookingData.user) {
+//       throw new Error(
+//         `Email failed: User not found (Populate returned null). Check your Booking schema to ensure the user ref matches Clerk String IDs.`,
+//       );
+//     }
+//     if (!bookingData.user.email) {
+//       throw new Error(
+//         `Email failed: The user document exists, but the email field is missing or empty.`,
+//       );
+//     }
+
+//     // 3. Send email safely inside its own step
+//     await step.run("send-email", async () => {
+//       await sendEmail({
+//         to: bookingData.user.email,
+//         subject: `Payment Confirmation: "${bookingData.show.movie.title}" booked!`,
+//         body: `<div style="font-family: Arial, sans-serif; line-height: 1.5;">
+//           <h2>Hi ${bookingData.user.name},</h2>
+//           <p>Your booking for <strong style="color: #F84565;">${bookingData.show.movie.title}</strong> is confirmed.</p>
+//           <p>
+//             <strong>Date:</strong> ${new Date(bookingData.show.showDateTime).toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" })}<br/>
+//             <strong>Time:</strong> ${new Date(bookingData.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "Asia/Kolkata" })}
+//           </p>
+//           <p>Enjoy the show! 🍿</p>
+//           <p>Thanks for booking with us!<br/>– QuickShow Team</p>
+//         </div>`,
+//       });
+//     });
+//   },
+// );
 
 export const functions = [
   syncUserCration,
