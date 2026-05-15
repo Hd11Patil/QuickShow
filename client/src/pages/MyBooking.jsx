@@ -38,6 +38,38 @@ const MyBooking = () => {
     }
   }, [user]);
 
+  // ---------------------------
+  const cancelBooking = async (bookingId) => {
+    try {
+      const confirmCancel = window.confirm(
+        "Are you sure you want to cancel this booking?",
+      );
+
+      if (!confirmCancel) return;
+
+      const { data } = await axios.delete(
+        `/api/user/cancel-booking/${bookingId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${await getToken()}`,
+          },
+        },
+      );
+
+      if (data.success) {
+        // Remove canceled booking from UI
+        setBookings((prev) =>
+          prev.filter((booking) => booking._id !== bookingId),
+        );
+
+        alert("Booking cancelled successfully");
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Failed to cancel booking");
+    }
+  };
+
   return !isLoading ? (
     <div className="relative px-6 md:px-16 lg:px-40 pt-30 md:pt-40 min-h-[80vh]">
       <BlurCircle top="100px" left="100px" />
@@ -70,7 +102,8 @@ const MyBooking = () => {
           </div>
 
           <div className="flex flex-col md:items-end md:text-right justify-between p-4">
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4"> */}
+            <div className="flex items-center gap-3 flex-wrap justify-end">
               <p className="text-2xl font-semibold mb-3">
                 {" "}
                 {currency} {item.amount}
@@ -83,6 +116,13 @@ const MyBooking = () => {
                   Pay Now
                 </Link>
               )}
+
+              <button
+                onClick={() => cancelBooking(item._id)}
+                className="bg-primary hover:bg-red-700 transition px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer"
+              >
+                Cancel Seat
+              </button>
             </div>
 
             <div className="text-sm">

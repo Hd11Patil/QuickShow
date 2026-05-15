@@ -65,3 +65,35 @@ export const getFavorites = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+//API Controller Function to Cancel Booking
+
+
+export const cancelBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+
+    const deletedBooking = await Booking.findByIdAndDelete(
+      bookingId
+    );
+
+    if (!deletedBooking) {
+      return res.json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Booking cancelled successfully",
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
